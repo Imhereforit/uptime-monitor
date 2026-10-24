@@ -1,0 +1,56 @@
+name: CI
+
+# Runs on every push and pull request. This is the automated quality gate
+# that DevOps/SRE roles expect: lint -> test -> security scan -> build.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements-dev.txt
+
+      - name: Lint (ruff)
+        run: ruff check .
+
+      - name: Security scan of source (bandit)
+        run: bandit -r app -c pyproject.toml
+
+      - name: Run tests
+        run: pytest -v
+
+  docker-build-and-scan:
+    runs-on: ubuntu-latest
+    needs: lint-and-test
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build image
+        run: docker build -t uptime-monitor:${{ github.sha }} .
+
+      # Runs the Trivy container directly instead of a third-party action, so
+      # there is no action dependency chain to break. Fails the build on fixable
+      # CRITICAL/HIGH findings; base-image CVEs with no patch yet are ignored
+      # because there is nothing to act on.
+      - name: Scan image for vulnerabilities (Trivy)
+        run: |
+          docker run --rm \
+            -v /var/run/docker.sock:/var/run/docker.sock \
+            aquasec/trivy:latest image \
+            --severity CRITICAL,HIGH \
+            --ignore-unfixed \
+            --exit-code 1 \
+            uptime-monitor:${{ github.sha }}

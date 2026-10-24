@@ -1,0 +1,11 @@
+# Prometheus scrape configuration. It polls the app's /metrics endpoint
+# every 15 seconds and stores the time series.
+
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: uptime-monitor
+    metrics_path: /metrics
+    static_configs:
+      - targets: ["app:8000"]

@@ -1,0 +1,34 @@
+# Brings up the full local stack: the app + Prometheus (scrapes metrics) +
+# Grafana (dashboards). One command to see production-style observability.
+
+services:
+  app:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      LOG_LEVEL: INFO
+    restart: unless-stopped
+
+  prometheus:
+    image: prom/prometheus:v3.1.0
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:11.4.0
+    ports:
+      - "3000:3000"
+    environment:
+      # Local-only demo credentials. Never do this in production — use secrets.
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_USERS_ALLOW_SIGN_UP: "false"
+    volumes:
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+    depends_on:
+      - prometheus
+    restart: unless-stopped
