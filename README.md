@@ -5,8 +5,7 @@ built the way a real service is run: containerized, observable, tested, security
 and deployable to AWS with Infrastructure as Code.
 
 I built this to practice the core skills shared across **DevOps, Site Reliability,
-Cloud/AWS, and Cybersecurity** roles. It was built with AI assistance and I went through
-every check myself. The full step-by-step record, including what broke and what I fixed, is in
+Cloud/AWS, and Cybersecurity** roles.The full step-by-step record, including what broke and what I fixed, is in
 [docs/BUILD-LOG.md](docs/BUILD-LOG.md).
 
 ![Grafana dashboard](docs/images/grafana-dashboard.jpg)
